@@ -1,1 +1,14 @@
-Hi
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask MySQL Example</title>
+</head>
+<body>
+    <h1>Data from MySQL Database</h1>
+    <ul>
+        {% for row in data %}
+            <li>ID: {{ row['id'] }} - Name: {{ row['name'] }} - Age: {{ row['age'] }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
