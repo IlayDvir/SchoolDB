@@ -1,4 +1,4 @@
 Flask==3.0.0  # Flask web framework
 mysql-connector-python==8.0.33  # MySQL database connector
-Flask-Cors==3.1.2  # For enabling CORS support
+Flask-Cors==5.0.0 # For enabling CORS support
 
