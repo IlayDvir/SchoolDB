@@ -5,6 +5,8 @@ app = Flask(__name__)
 
 # Database connection
 db = mysql.connector.connect(
+    port = 3306,
+    host = "10.4.65.59",
     user="root",
     password="BestPassword",
     database="University"
