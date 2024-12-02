@@ -1,16 +1,51 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import mysql.connector
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Required for flash messages
 
 # Database connection
 db = mysql.connector.connect(
     port = 3306,
-    host = "10.4.26.236",
+    host = "10.4.104.252",
     user="root",
     password="BestPassword",
     database="University"
 )
+
+def get_grades():
+    """Fetch grades from the database."""
+    print(f"Username: {session.get('username')}")
+    print(f"Password: {session.get('password')}")
+    print(f"Student ID: {session.get('ID')}")
+    
+    # Ensure Student ID is available
+    student_id = session.get('ID')
+    if not student_id:
+        raise ValueError("Student ID not found in session")
+
+    try:
+        # Connect to the database
+        
+        # Execute the query
+        query = "SELECT Grade, Section_ID FROM Stud_Takes WHERE Student_ID = %s"
+        cursor=db.cursor(dictionary=True)
+        cursor.execute(query, student_id)
+
+        
+        # Fetch all results to prevent unread result error
+        grades = cursor.fetchall()
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        grades = []
+    
+    finally:
+        # Ensure all resources are cleaned up properly
+        cursor.close()
+    
+    return grades
+
 
 @app.route('/')
 def home():
@@ -51,49 +86,66 @@ def insertstudent():
         print(f"Error: {e}")
         return f"An error occurred: {e}"
 
-
-@app.route('/checkaccfaculty', methods=['POST'])
+@app.route('/checkaccfaculty', methods=['POST', 'GET'])
 def checkaccfac():
-    user = request.form.get('Username')
-    pas = request.form.get('Password')
-    checkdatabase = "select Security_Level from account where Security_Level>0 and Username = %s and Password=%s;"
-    data = (user, pas)
+    if request.method == 'POST':
+        user = request.form.get('Username')
+        pas = request.form.get('Password')
+        session['username'] = user
+        session['password'] = pas
 
-    cursor = db.cursor()
-    cursor.execute(checkdatabase, data)
+        checkdatabase = "SELECT Security_Level FROM account WHERE Security_Level > 0 AND Username = %s AND Password = %s;"
+        data = (user, pas)
 
-    if cursor.fetchone():
-        return(redirect(url_for('faculty')))
-        print("LOGIN!")
-    else:
-        print("Not found!!")
-        return redirect(url_for('home'))
+        cursor = db.cursor()
+        cursor.execute(checkdatabase, data)
 
+        if cursor.fetchone():
+            return redirect(url_for('faculty'))
+        else:
+            print("Here")
+            flash('Invalid username or password. Please try again.')
+            return redirect(url_for('checkaccfac'))
+
+    # Render the form on a GET request
+    return render_template('employee-login.html')
 
 
 @app.route('/checkaccstudents', methods=['POST'])
 def checkaccstu():
-    print("student")
     user = request.form.get('Username')
     pas = request.form.get('Password')
+    session['username'] = user
+    session['password'] = pas
     checkdatabase = "select Security_Level from account where Security_Level=0 and Username = %s and Password=%s;"
     data = (user, pas)
+    
 
     cursor = db.cursor()
     cursor.execute(checkdatabase, data)
-
+    
     if cursor.fetchone():
-        return(render_template('Studentpage.html'))
-        print("LOGIN!")
+            cursor.close()
+            checkdatabase = "select I_D from account where Username = %s and Password=%s;"
+            cursor = db.cursor()
+            cursor.execute(checkdatabase, data)
+            session['ID'] = cursor.fetchone()
+            print(session['ID'])
+            return redirect(url_for('students'))
     else:
-        print("Not found!!")
-        return redirect(url_for('home'))
+        print("Here")
+        flash('Invalid username or password. Please try again.')
+        return redirect(url_for('checkaccstu'))
+
+    
+    # Render the form on a GET request
+    return render_template('student-login.html')
     
 
 @app.route('/students')
 def students():
-    print("here")
-    return render_template('Studentpage.html')
+    grades = get_grades()
+    return render_template('Studentpage.html', grades=grades)
 
 @app.route('/faculty')
 def faculty():
