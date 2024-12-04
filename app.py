@@ -233,16 +233,21 @@ def students():
             elif coreq_satisfied != 0:
                 print("Enrollment failed: Corequisites not met.")
             else:
+                  try:
+
                     # Enroll the student
                     section_id = request.form['section_id']
                     print(section_id)
                     cursor.execute("""
                         INSERT INTO Stud_Takes (Section_ID, Student_ID, Grade_Status)
                         VALUES (%s, %s, 'Enrolled')
-                    """, (section_id, student_id))
+                    """, (int(section_id), int(student_id)))
                     
                     db.commit()
                     print("Enrollment successful!")
+                  except:
+                      print("Enrollment failed: Database error.")
+                      db.rollback()
 
 
 

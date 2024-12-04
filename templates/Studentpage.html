@@ -79,7 +79,7 @@
     <label for="course">Select Course:</label>
     <select name="section_id" id="course">
       {% for course in available_courses %}
-        <option value="{{ course['Section_ID'] }} {{ course['Course_ID'] }}">
+        <option value="{{ course['Section_ID'] }}">
           {{ course['Course_ID'] }} - {{ course['Days_Offered'] }} - 
           {{ course['Time_Start'] }} to {{ course['Time_End'] }} - 
           {{ course['Room'] }} - Open Seats: {{ course['Open_Seats'] }} - 
