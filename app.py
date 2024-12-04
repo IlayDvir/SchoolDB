@@ -151,10 +151,163 @@ def checkaccstu():
     return render_template('student-login.html')
     
 
-@app.route('/students')
+@app.route('/students', methods=['GET', 'POST'])
 def students():
     grades = get_grades()
-    return render_template('Studentpage.html', grades=grades)
+    student_id = int(session['ID'][0])
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        if 'update_student' in request.form:
+            first_name = request.form['first_name']
+            last_name = request.form['last_name']
+            email = request.form['email']
+            address = request.form['address']
+            phone_number = request.form['phone_number']
+            major = request.form['major']
+            minor = request.form['minor']
+
+            cursor.execute("""
+                UPDATE Students
+                SET First_Name = %s, Last_Name = %s, Email = %s, Address = %s,
+                    Phone_Number = %s, Major = %s, Minor = %s
+                WHERE Student_ID = %s
+            """, (first_name, last_name, email, address, phone_number, major, minor, student_id))
+            db.commit()
+
+        # Update Emergency Contact Information
+        elif 'update_emer' in request.form:
+            contact_name = request.form['contact_name']
+            contact_phone = request.form['contact_phone']
+            contact_email = request.form['contact_email']
+
+            cursor.execute("""
+                UPDATE Emergancy_Contact
+                SET Contact_Name = %s, NumberPhone = %s, Email = %s
+                WHERE ID = %s
+            """, (contact_name, contact_phone, contact_email, student_id))
+            db.commit()
+        elif 'cupdate' in request.form:
+            section_id = request.form['section_id']
+            cursor.execute("""
+                SELECT COUNT(*) AS Prereq_Satisfied
+                FROM PreCo pc
+                JOIN Stud_Takes st ON pc.Req_ID = st.Section_ID
+                WHERE pc.Type = 'PRE'
+                AND pc.Course_ID = (SELECT Course_ID FROM Sections WHERE Section_ID = %s)
+                AND st.Student_ID = %s
+                AND st.Grade IN ('A', 'B', 'C')
+            """, (section_id, student_id))
+
+            countpre = cursor.fetchone()
+            print(countpre)
+            cursor.execute("""
+                SELECT COUNT(*) AS Prereq_Satisfied
+                FROM PreCo pc
+                WHERE pc.Type = 'PRE'
+                AND pc.Course_ID = (SELECT Course_ID FROM Sections WHERE Section_ID = %s)
+            """, (section_id,))
+
+            prereq_satisfied = cursor.fetchone()==countpre
+            print(prereq_satisfied)
+            # Check corequisites
+            cursor.execute("""
+                SELECT COUNT(*) AS Coreq_Satisfied
+                FROM PreCo pc
+                LEFT JOIN Stud_Takes st ON pc.Req_ID = st.Section_ID AND st.Student_ID = %s
+                WHERE pc.Type = 'CO'
+                AND pc.Course_ID = (SELECT Course_ID FROM Sections WHERE Section_ID = %s)
+                AND (st.Section_ID IS NOT NULL OR EXISTS (
+                    SELECT 1
+                    FROM Stud_Takes st2
+                    WHERE st2.Student_ID = %s AND st2.Section_ID = pc.Req_ID
+                ))
+            """, (student_id, section_id, student_id))
+            k=cursor.fetchone()
+            print(k)
+            coreq_satisfied = k['Coreq_Satisfied']
+
+            # Enrollment decision
+            if not prereq_satisfied:
+                 print("Enrollment failed: Prerequisites not met.")
+            elif coreq_satisfied != 0:
+                print("Enrollment failed: Corequisites not met.")
+            else:
+                    # Enroll the student
+                    section_id = request.form['section_id']
+                    print(section_id)
+                    cursor.execute("""
+                        INSERT INTO Stud_Takes (Section_ID, Student_ID, Grade_Status)
+                        VALUES (%s, %s, 'Enrolled')
+                    """, (section_id, student_id))
+                    
+                    db.commit()
+                    print("Enrollment successful!")
+
+
+
+    # Fetch the current emergency contact details
+    cursor.execute("""
+        SELECT Contact_Name, NumberPhone, Email
+        FROM Emergancy_Contact
+        WHERE ID = %s
+    """, (student_id, ))
+    contact_info = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT Billing_Address, Paid, Due, Total, Bank_num
+        FROM Billing_Info
+        WHERE ID = %s
+    """, (student_id,))
+    billing_info = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT First_Name, Last_Name, Email, Address, Phone_Number, Major, Minor
+        FROM Students
+        WHERE Student_ID = %s
+    """, (student_id,))
+    student_info = cursor.fetchone()
+
+
+    #Aggregate to find how many open seats
+    cursor.execute("""
+SELECT 
+    s.Section_ID, 
+    c.Course_ID, 
+    s.Days_Offered, 
+    (s.Capacity - COUNT(st.Student_ID)) AS Open_Seats, 
+    s.Time_Start, 
+    s.Time_End, 
+    s.Room,  
+    s.Semester, 
+    s.Year, 
+    p.Name, 
+    c.Description 
+FROM 
+    Sections s
+LEFT JOIN 
+    Stud_Takes st ON s.Section_ID = st.Section_ID
+JOIN 
+    Courses c ON s.Course_ID = c.Course_ID
+JOIN 
+    Professors p ON s.Professor_ID = p.ID
+GROUP BY 
+    s.Section_ID, 
+    c.Course_ID, 
+    s.Days_Offered, 
+    s.Capacity, 
+    s.Time_Start, 
+    s.Time_End, 
+    s.Room, 
+    s.Semester, 
+    s.Year, 
+    p.Name, 
+    c.Description;""")
+    available_courses = cursor.fetchall()
+
+    cursor.close()
+
+    return render_template('Studentpage.html', available_courses=available_courses, grades=grades, contact_info=contact_info, billing_info=billing_info, student_info=student_info)
 
 @app.route('/faculty', methods=['GET', 'POST'])
 def faculty_page():
@@ -165,7 +318,6 @@ def faculty_page():
         student_id = request.form['student_id']
         course_id = request.form['course_id']
         section_id = request.form['section_id']
-
         action = request.form['action']
         grade = request.form.get('grade')  # use .get() to handle missing grades
 

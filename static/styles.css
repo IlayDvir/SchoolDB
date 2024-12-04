@@ -1,43 +1,105 @@
+/* Reset some default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body styling */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  .container {
-    text-align: center;
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  h1 {
-    margin-bottom: 20px;
-  }
-  
-  button {
-    padding: 10px 20px;
-    margin: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-    background-color: #007bff;
-    color: white;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-  }
-  
-  button:active {
-    transform: scale(1);
-  }
-  
+  font-family: Arial, sans-serif;
+  background-color: #ccc;
+  margin: 20px;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+input[type="submit"] {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+  border: none; /* No border */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 1.1em;
+}
+
+
+
+
+
+/* Style for each input and button element */
+input[type="text"],
+input[type="email"],
+input[type="submit"] {
+  width: 20%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #acacac;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+label {
+  display: block;
+  font-size: 1em;
+  margin-bottom: 8px;
+}
+
+/* Styling for tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #f4f4f4;
+}
+
+/* Links for navigation */
+a {
+  color: #007BFF;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Add space around the forms for cleaner visuals */
+form {
+  display: flex;
+  justify-content: space-between; /* Distribute space between the forms */
+  gap: 20px; /* Add space between the forms */
+  flex-wrap: wrap; /* Allow forms to wrap on smaller screens */
+
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+
+}
+
+.form-container {
+
+  max-width: 8000px; /* Increase the maximum width */
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+

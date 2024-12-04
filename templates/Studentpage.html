@@ -4,19 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Home</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  
 </head>
 
 <body>
   <h1>Your grades</h1>
   <body>
     <table>
-        <thead>
-            <tr>
-                <th>Section_ID</th>
-                <th>Grade</th>
-            </tr>
-        </thead>
         <ul>
           {% for row in grades %}
               <li>Course_ID: {{ row['Section_ID'] }} - Grade: {{ row['Grade'] }} - Course Description: {{ row['Description'] }} Course ID -{{ row['Course_ID'] }}</li>
@@ -26,17 +21,96 @@
   </body>
 </body>
 
-</html>
-<form method="POST">
-    <label for="contact_name">Contact Name:</label>
-    <input type="text" id="contact_name" name="contact_name" value="{{ contact_info['Contact_Name'] }}" required><br><br>
+<div>
+  </html>
+  <h1>Edit your Emergency Contact Info</h1>
+  <form method="POST">
+      <label for="contact_name">Contact Name:</label>
+      <input type="text" id="contact_name" name="contact_name" value="{{ contact_info['Contact_Name'] }}" required><br><br>
+  
+      <label for="contact_phone">Contact Phone:</label>
+      <input type="text" id="contact_phone" name="contact_phone" value="{{ contact_info['NumberPhone'] }}" required><br><br>
+  
+      <label for="contact_email">Contact Email:</label>
+      <input type="email" id="contact_email" name="contact_email" value="{{ contact_info['Email'] }}" required><br><br>
+  
+      <input type="submit" name="update_emer" value="Update Emergency Contact">
+  </form>
+  </html>
+  
+  
+  
+  
+      <body>
+        <h1>Update My Information</h1>
+    
+        <form method="POST">
+            <label for="first_name">First Name:</label>
+            <input type="text" name="first_name" id="first_name" value="{{ student_info['First_Name'] }}" required><br><br>
+            
+            <label for="last_name">Last Name:</label>
+            <input type="text" name="last_name" id="last_name" value="{{ student_info['Last_Name'] }}" required><br><br>
+            
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" value="{{ student_info['Email'] }}" required><br><br>
+            
+            <label for="address">Address:</label>
+            <input type="text" name="address" id="address" value="{{ student_info['Address'] }}" required><br><br>
+            
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" name="phone_number" id="phone_number" value="{{ student_info['Phone_Number'] }}" required><br><br>
+            
+            <label for="major">Major:</label>
+            <input type="text" name="major" id="major" value="{{ student_info['Major'] }}" required><br><br>
+            
+            <label for="minor">Minor:</label>
+            <input type="text" name="minor" id="minor" value="{{ student_info['Minor'] }}" required><br><br>
+    
+            <input type="submit" name="update_student" value="Update Information">
+        </form>
+    
+        <p><a href="{{ url_for('home') }}">Back to Home</a></p>
+    </body>
+</div>
 
-    <label for="contact_phone">Contact Phone:</label>
-    <input type="text" id="contact_phone" name="contact_phone" value="{{ contact_info['NumberPhone'] }}" required><br><br>
+<div class="form-container">
+  <h2>Enroll in a New Class</h2>
+  <form method="POST" action="{{ url_for('students') }}">
+    <label for="course">Select Course:</label>
+    <select name="section_id" id="course">
+      {% for course in available_courses %}
+        <option value="{{ course['Section_ID'] }} {{ course['Course_ID'] }}">
+          {{ course['Course_ID'] }} - {{ course['Days_Offered'] }} - 
+          {{ course['Time_Start'] }} to {{ course['Time_End'] }} - 
+          {{ course['Room'] }} - Open Seats: {{ course['Open_Seats'] }} - 
+          {{ course['Semester'] }} {{ course['Year'] }}
+          Professor -{{ course['Name'] }} 
+        </option>
+      {% endfor %}
+    </select><br><br>
 
-    <label for="contact_email">Contact Email:</label>
-    <input type="email" id="contact_email" name="contact_email" value="{{ contact_info['Email'] }}" required><br><br>
+    <input type="submit" name="cupdate" value="Enroll In Course">
+  </form>
+</div>
 
-    <button type="submit">Update Emergency Contact</button>
-</form>
-</html>
+
+</div>
+  <h1>Billing Info</h1>
+    <table border="1">
+        <tr>
+            <th>Billing Address</th>
+            <th>Paid</th>
+            <th>Due</th>
+            <th>Total</th>
+            <th>Bank Number</th>
+        </tr>
+        {% for info in billing_info %}
+        <tr>
+            <td>{{ info.Billing_Address }}</td>
+            <td>{{ info.Paid }}</td>
+            <td>{{ info.Due }}</td>
+            <td>{{ info.Total }}</td>
+            <td>{{ info.Bank_num }}</td>
+        </tr>
+        {% endfor %}
+    </table>
