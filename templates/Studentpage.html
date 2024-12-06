@@ -73,26 +73,10 @@
     </body>
 </div>
 
-<div class="form-container">
-  <h2>Enroll in a New Class</h2>
-  <form method="POST" action="{{ url_for('students') }}">
-    <label for="course">Select Course:</label>
-    <select name="section_id" id="course">
-      {% for course in available_courses %}
-        <option value="{{ course['Section_ID'] }}">
-          {{ course['Course_ID'] }} - {{ course['Days_Offered'] }} - 
-          {{ course['Time_Start'] }} to {{ course['Time_End'] }} - 
-          {{ course['Room'] }} - Open Seats: {{ course['Open_Seats'] }} - 
-          {{ course['Semester'] }} {{ course['Year'] }}
-          Professor -{{ course['Name'] }} 
-        </option>
-      {% endfor %}
-    </select><br><br>
-
-    <input type="submit" name="cupdate" value="Enroll In Course">
-  </form>
-</div>
-
+<H1> ENROLL PAGE </H1>
+<a href="{{ url_for('enroll') }}">
+  <button type="button">Go to Enroll Page</button>
+</a>
 
 </div>
   <h1>Billing Info</h1>

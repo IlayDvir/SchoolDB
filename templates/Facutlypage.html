@@ -10,6 +10,7 @@
 <body>
     <h1>Faculty Enrollment Page</h1>
     <h2>Enrolled Students</h2>
+    <h3>You are in charge of : {{ total_students }} students</h3>
     <table border="1">
         <tr>
             <th>Student ID</th>
@@ -33,22 +34,17 @@
         {% endfor %}
     </table>
 
+
+    
     <h2>Manage Enrollment</h2>
     <form method="POST">
-        <label for="course_id">Course:</label>
+        <label for="course_id">Course and Section:</label>
         <select name="course_id" id="course_id">
             {% for course in courses %}
-            <option value="{{ course.Course_ID }}">{{ course.Course_ID }} - {{ course.Description }}</option>
+            <option value="{{ course.Section_ID }}  {{ course.Course_ID }}"> {{ course.Course_ID }} - {{ course.Description }} - {{ course.Section_ID }}</option>
             {% endfor %}
         </select><br><br>
 
-
-        <label for="section_id">Section:</label>
-        <select name="section_id" id="section_id">
-            {% for section in sections %}
-            <option value="{{ section.Section_ID }}">{{ section.Section_ID }}</option>
-            {% endfor %}
-        </select><br><br>
 
 
         <label for="student_id">Student ID:</label>

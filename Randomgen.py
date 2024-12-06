@@ -1,10 +1,9 @@
 import mysql.connector
-import random
 
-# Database connection setup
+# Database connection
 db = mysql.connector.connect(
     port = 3306,
-    host = "10.4.50.156",
+    host = "10.4.109.189",
     user="root",
     password="BestPassword",
     database="University"
@@ -12,48 +11,44 @@ db = mysql.connector.connect(
 
 cursor = db.cursor()
 
-# Fetch all student IDs
-cursor.execute("SELECT Student_ID FROM Students")
-students = cursor.fetchall()
+try:
+    # Insert 1,000 courses and sections
+    for i in range(1, 1001):
+        course_id = 50000 + i  # Unique course IDs starting from 50001
+        description = f"Course {i}: Advanced Concepts"
+        credit = 3  # Example credit value
+        academic_calendar = "Undergrad"
 
-# Fetch all course sections available (we'll assume students are enrolled in available sections)
-cursor.execute("""
-    SELECT Section_ID FROM Sections
-""")
-sections = cursor.fetchall()
+        # Insert the course
+        cursor.execute("""
+            INSERT INTO Courses (Course_ID, Description, Credit, Academic_Career)
+            VALUES (%s, %s, %s, %s)
+        """, (course_id, description, credit, academic_calendar))
 
-# Function to enroll students
-def enroll_students_in_courses():
-    try:
-        for student in students:
-            student_id = student[0]
+        # Create the section
+        section_id = 60000 + i  # Unique section IDs starting from 60001
+        days_offered = "MWF" if i % 2 == 0 else "TR"  # Alternate days
+        capacity = 30 + (i % 3) * 10  # Vary capacity between 30, 40, and 50
+        time_start = "09:00" if i % 2 == 0 else "10:30"  # Alternate start times
+        time_end = "10:15" if i % 2 == 0 else "11:45"  # Alternate end times
+        room = f"Room {chr(65 + (i % 5))}"  # Alternate between Room A, B, C, etc.
+        semester = "Fall" if i % 2 == 0 else "Spring"  # Alternate semesters
+        year = 2024
+        professor_id = 10003
 
-            # Select random number of courses for each student (e.g., 1 to 3 courses per student)
-            num_courses = random.randint(1, 3)
+        # Insert into the Sections table
+        cursor.execute("""
+            INSERT INTO Sections (Section_ID, Days_Offered, Capacity, Time_Start, Time_End, Room, Semester, Year, Course_ID, Professor_ID)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (section_id, days_offered, capacity, time_start, time_end, room, semester, year, course_id, professor_id))
 
-            # Enroll the student in the selected courses
-            selected_sections = random.sample(sections, num_courses)  # Randomly choose courses
+    db.commit()
+    print("Successfully added 1,000 courses and linked sections to Professor_ID 10003")
 
-            for section in selected_sections:
-                section_id = section[0]
+except mysql.connector.Error as err:
+    print(f"Error: {err}")
+    db.rollback()
 
-                # Insert into Stud_Takes to enroll the student
-                cursor.execute("""
-                    INSERT INTO Stud_Takes (Section_ID, Student_ID, Grade, Grade_Status)
-                    VALUES (%s, %s, %s, 'Enrolled')
-                """, (section_id, student_id, None))
-
-        # Commit the changes
-        db.commit()
-        print("All students have been enrolled in courses successfully.")
-
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        db.rollback()
-
-# Enroll students in courses
-enroll_students_in_courses()
-
-# Close the connection
-cursor.close()
-db.close()
+finally:
+    cursor.close()
+    db.close()
