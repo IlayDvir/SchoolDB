@@ -259,21 +259,23 @@ def enroll():
             elif coreq_satisfied != 0:
                 print("Enrollment failed: Corequisites not met.")
             else:
-                try:
+                # try:
 
                     # Enroll the student
-                    section_id = request.form['section_id']
+                    section_id = request.form.get('enroll')
                     print(section_id)
                     cursor.execute("""
                         INSERT INTO Stud_Takes (Section_ID, Student_ID, Grade, Grade_Status)
                         VALUES (%s, %s, 'N', 'Enrolled')
-                    """, (int(section_id), int(student_id)))
+                    """, (section_id, int(student_id)))
                     
                     db.commit()
                     print("Enrollment successful!")
-                except:
-                    print("Enrollment failed: Database error.")
-                    db.rollback()
+                # except:
+                #     print("Enrollment failed: Database error.")
+                #     db.rollback()
+            return redirect(url_for('students'))
+        
     elif request.method == 'GET':
         search = request.args.get('search')
         sort_by = request.args.get('sort_by', 'Open_Seats')
@@ -508,9 +510,9 @@ WHERE
         
         open_seat = cursor.fetchall()
         try:
-                if action == 'enroll' and str(open_seat[0]['Open_Seats']) == "None" or open_seat[0]['Open_Seats']>0:
+                
+                if action == 'enroll' and (str(open_seat[0]['Open_Seats']) == "None" or open_seat[0]['Open_Seats']>0):
                     # Check if course_id and student_id are valid before enrolling
-
                     cursor.execute("""
                         INSERT INTO Stud_Takes (Section_ID, Student_ID, Grade, Grade_Status)
                         VALUES (%s, %s, 'N', 'Enrolled')
@@ -518,8 +520,22 @@ WHERE
                     db.commit()
 
                 elif action == 'drop':
-                    # Drop student from course
-                    print(student_id)
+                    # Drop student from cours
+                    cursor.execute("""
+                        SELECT *
+                        FROM Stud_Takes
+                        WHERE Student_ID = %s AND Section_ID = %s
+                    """, (student_id, course_id[0]))
+
+                    print(cursor.fetchone())
+
+                    if str(cursor.fetchone())=='None':
+                        error_message = "Could not find class!"
+                        print(error_message)
+                        return render_template('error.html', error_message=error_message), 500
+
+
+
                     cursor.execute("""
                         DELETE FROM Stud_Takes
                         WHERE Student_ID = %s AND Section_ID = %s
@@ -534,10 +550,11 @@ WHERE
                     db.commit()
 
 
-        except mysql.connector.Error as err:
-                # Handle any database errors
-                db.rollback()
-                print(err)
+        except mysql.connector.Error as db_err:
+        # Handle database errors
+            
+            error_message = f"Database Error: {db_err}"
+            return render_template('error.html', error_message=error_message), 500
 
     # Fetch all courses for faculty
     cursor.execute("SELECT * FROM Courses C,Sections S Where S.Course_ID=C.Course_ID")
@@ -557,7 +574,6 @@ WHERE
 
     cursor.execute("SELECT * FROM Sections")
     sections = cursor.fetchall()
-    print(sections)
 
     cursor.execute("""
         SELECT Count(Student_ID) as total_students
@@ -567,9 +583,30 @@ WHERE
     total_students = cursor.fetchone()['total_students']
 
 
+    cursor.execute("""
+        SELECT 
+    AVG(
+        CASE 
+            WHEN st.Grade = 'A' THEN 4.0
+            WHEN st.Grade = 'B' THEN 3.0
+            WHEN st.Grade = 'C' THEN 2.0
+            WHEN st.Grade = 'D' THEN 1.0
+            WHEN st.Grade = 'F' THEN 0.0
+            ELSE NULL  
+        END
+    ) AS Average_GPA
+FROM 
+    Stud_Takes st, Students S
+WHERE 
+    s.Advisor_ID=%s AND st.Student_ID=s.Student_ID;
+    """, (advisor_id))  # <-- Ensure session['ID'] is passed as a tuple
+    avgrade = cursor.fetchone()['Average_GPA']
+
+    
+
     cursor.close()
 
-    return render_template('Facutlypage.html', total_students=total_students, courses=courses, enrolled_students=enrolled_students, sections=sections)
+    return render_template('Facutlypage.html', avgrade=avgrade, total_students=total_students, courses=courses, enrolled_students=enrolled_students, sections=sections)
 
 
 @app.route('/')
